@@ -1,0 +1,134 @@
+function New-SSMConnection {
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]
+    $Profile,
+
+    [Parameter(Mandatory = $true)]
+    [string]
+    $Region,
+
+    [Parameter(Mandatory = $false)]
+    [string]
+    $PEMFile,
+
+    [Parameter(Mandatory = $false)]
+    [string]
+    $InstanceId,
+
+    [Parameter(Mandatory = $false)]
+    [string]
+    $Port
+  )
+
+  # Functions
+  function Get-Timestamp {
+    return "[$(Get-Date)]"  
+  }
+
+
+  # Test AWSCLI is installed
+  try {
+    $testCli = Get-Command "aws" -ErrorAction Stop
+  }
+  catch {
+    Write-Error "AWS CLI is not installed/not found in path - visit https://aws.amazon.com/cli/ for instructions" -ErrorAction Stop
+  }
+
+  # Import module
+  Import-Module AWSPowerShell.NetCore
+
+  # Set credentials
+  try {
+    Set-AWSCredentials -ProfileName $profile
+  }
+  catch {
+    Write-Error "Unable to load profile: $_" -ErrorAction Stop
+  }
+  Set-DefaultAWSRegion $Region
+
+  Write-Host "$(Get-Timestamp) Initialised with profile $($profile) in region $($region)"
+
+  # Get instances
+  if ([string]::IsNullOrEmpty($InstanceId)) {
+    Write-Host "$(Get-Timestamp) Getting running instances..."
+    try { 
+      $ec2Instances = (Get-EC2Instance).RunningInstance | Where-Object { $_.State.Name -eq "running" }
+    }
+    catch {
+      Write-Error "Could not get instances: $_" -ErrorAction Stop
+    }
+
+    # Display for selection
+    Write-Host "$(Get-Timestamp) Got $($ec2Instances.Count) running instances:"
+    $instanceOutput = @()
+    $count = 0
+    foreach ($instance in $ec2Instances) {
+      try {
+        $name = ($instance.Tags | Where-Object { $_.Key -eq "Name" }).Value
+      }
+      catch {
+        $name = ""
+      }
+      $instanceSplat = NEw-Object -TypeName PSObject -Property @{
+        Index      = $count
+        InstanceId = $instance.InstanceId
+        Name       = $name
+        State      = $instance.State.Name
+        LaunchTime = $instance.LaunchTime
+      }
+      $instanceOutput += $instanceSplat  
+      $count++
+    }
+
+    $instanceOutput | Format-Table Index, InstanceId, Name, State, LaunchTime
+
+    # Get selection
+    $selectionInstance = Read-Host -Prompt "$(Get-Timestamp) Enter index of instance to connect to"
+    if ($selectionInstance -eq "") {
+      Write-Host "$(Get-Timestamp) No instance selected, exiting"
+      return
+    }
+    else {
+      $InstanceId = $instanceOutput[$selectionInstance].InstanceId
+    }
+  } 
+
+  # Ask for port
+  if ([string]::IsNullOrEmpty($Port)) {
+    $selectionPort = Read-Host -Prompt "$(Get-Timestamp) Enter local port to forward (Press enter to accept default: 56789)"
+    if ($selectionPort -eq "") { $selectionPort = "56789" }
+    $Port = $selectionPort
+  }
+
+  # Retrieve password if PEM param
+  if ($PEMFile) {
+    Write-Host "$(Get-Timestamp) -PEMFile parameter detected, attepting to get password..."
+
+    if ((Test-Path $PEMFile) -ne $true) {
+      Write-Host "$(Get-Timestamp) Could not find $($PEMFile), skipping..."
+    }
+    else {
+      $password = Get-EC2PasswordData -InstanceId $InstanceId -PEMFile $PEMFile -Decrypt
+      if ([string]::IsNullOrEmpty($password)) {
+        Write-Host "$(Get-Timestamp) Could not decrypt password, continuing without."
+      }
+      else {
+        Write-Host "$(Get-Timestamp) Successfully decrypted password."
+      }
+    }
+  }
+
+  # Output selection
+  Write-Host "$(Get-Timestamp) Selected:"
+  Write-Host "Instance ID: $($InstanceId)"
+  Write-Host "Local port: $($Port)"
+  if ([string]::IsNullOrEmpty($password) -ne $true) { Write-Host "Password: $($password)" }
+
+  # Start SSM connection
+  Write-Host "$(Get-Timestamp) Attempting to start SSM connection:"
+
+  aws ssm start-session --target $InstanceId --document-name AWS-StartPortForwardingSession --parameters "localPortNumber=$($Port),portNumber=3389" --region $Region --profile $Profile
+
+  Write-Host "$(Get-Timestamp) Connection terminated."
+}
