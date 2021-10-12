@@ -1,5 +1,5 @@
 # Variables
-$repoLocation = "D:\git\posh-profile"
+$repoLocation = "C:\git\posh-profile"
 
 # Install posh if not found
 if (Get-Module -ListAvailable -Name oh-my-posh) {
@@ -24,3 +24,6 @@ foreach ($FontItem in (Get-ChildItem -Path $(Join-Path $repoLocation "fonts") | 
 
 # Update WindowsTerminal settings
 Copy-Item (Join-Path $repoLocation "windowsterminal\settings.json") "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+
+# Import modules
+if ((Get-Module AWSPowerShell.NetCore) -eq $null) { Import-Module AWSPowerShell.NetCore -Scope Global }

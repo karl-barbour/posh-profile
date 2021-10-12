@@ -21,7 +21,8 @@ function Set-AWSRegion {
 
   if ($Region) {
     # Use the parameter if it's there...
-    $ENV:AWS_REGION = $Region
+    $ENV:AWS_DEFAULT_REGION = $Region
+    Set-DefaultAWSRegion $Region -Scope Global
   }
   else {
     Write-Error "Must specify a region"
