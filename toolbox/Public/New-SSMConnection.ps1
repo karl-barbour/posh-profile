@@ -1,4 +1,32 @@
 function New-SSMConnection {
+  <#
+  .SYNOPSIS
+      New-SSMConnection opens an RDP tunnel using SSM.
+  .DESCRIPTION
+      Requires awscli and SSM extension.
+  .PARAMETER Profile
+      AWS Profile Name.
+  .PARAMETER Region
+      AWS Region.
+  .PARAMETER PEMFile
+      Path to PEM file to decrypt passwords (Optional).
+  .PARAMETER InstanceId
+      Specify instance ID (Optional).
+  .PARAMETER LocalPort
+      Specify Local Port to forward (Optional).
+  .PARAMETER RemotePort
+      Specify Remote Port to forward (Optional - Default 3389).
+  .EXAMPLE
+      New-SSMConnection -Profile profilename -Region eu-west-1
+  .EXAMPLE
+      New-SSMConnection -Profile profilename -Region eu-west-1 -PEMFile ./key.pem
+  .EXAMPLE
+      New-SSMConnection -Profile profilename -Region eu-west-1 -InstanceId "i-12345678abcdef" -PEMFile ./key.pem
+  .EXAMPLE
+      New-SSMConnection -Profile profilename -Region eu-west-1 -LocalPort 56789 -RemotePort 22
+  #>
+
+  [CmdletBinding()]
   param (
     [Parameter(Mandatory = $true)]
     [string]
@@ -18,7 +46,11 @@ function New-SSMConnection {
 
     [Parameter(Mandatory = $false)]
     [string]
-    $Port
+    $LocalPort,
+
+    [Parameter(Mandatory = $false)]
+    [string]
+    $RemotePort = "3389"
   )
 
   # Functions
@@ -95,10 +127,10 @@ function New-SSMConnection {
   } 
 
   # Ask for port
-  if ([string]::IsNullOrEmpty($Port)) {
+  if ([string]::IsNullOrEmpty($LocalPort)) {
     $selectionPort = Read-Host -Prompt "$(Get-Timestamp) Enter local port to forward (Press enter to accept default: 56789)"
     if ($selectionPort -eq "") { $selectionPort = "56789" }
-    $Port = $selectionPort
+    $LocalPort = $selectionPort
   }
 
   # Retrieve password if PEM param
@@ -122,13 +154,13 @@ function New-SSMConnection {
   # Output selection
   Write-Host "$(Get-Timestamp) Selected:"
   Write-Host "Instance ID: $($InstanceId)"
-  Write-Host "Local port: $($Port)"
+  Write-Host "Local port: $($LocalPort)"
   if ([string]::IsNullOrEmpty($password) -ne $true) { Write-Host "Password: $($password)" }
 
   # Start SSM connection
   Write-Host "$(Get-Timestamp) Attempting to start SSM connection:"
 
-  aws ssm start-session --target $InstanceId --document-name AWS-StartPortForwardingSession --parameters "localPortNumber=$($Port),portNumber=3389" --region $Region --profile $Profile
+  aws ssm start-session --target $InstanceId --document-name AWS-StartPortForwardingSession --parameters "localPortNumber=$($LocalPort),portNumber=$($RemotePort)" --region $Region --profile $Profile
 
   Write-Host "$(Get-Timestamp) Connection terminated."
 }
