@@ -1,10 +1,11 @@
 # Variables
-$repoLocation = "C:\git\posh-profile"
+$repoLocation = "G:\git\posh-profile"
 
 # Install posh if not found
 if (Get-Module -ListAvailable -Name oh-my-posh) {
   Import-Module -Name oh-my-posh
-} else {
+}
+else {
   Write-Host "Oh-My-Posh not found - installing!"
   Install-Module oh-my-posh -Scope CurrentUser -Force
 }
@@ -18,7 +19,7 @@ Import-Module (Join-Path $repoLocation "toolbox\output\Toolbox.psm1")
 # Install fonts
 foreach ($FontItem in (Get-ChildItem -Path $(Join-Path $repoLocation "fonts") | Where-Object {
   ($_.Name -like '*.ttf') -or ($_.Name -like '*.OTF')
-})) {
+    })) {
   Install-Font $FontItem
 }
 
