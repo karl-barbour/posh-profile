@@ -1,5 +1,5 @@
 # Variables
-$repoLocation = "C:\git\posh-profile"
+$repoLocation = "G:\git\posh-profile"
 
 # Install posh if not found
 if (Get-Module -ListAvailable -Name oh-my-posh) {

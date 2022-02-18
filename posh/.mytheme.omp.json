@@ -3,37 +3,37 @@
   "blocks": [
     {
       "alignment": "left",
-      "horizontal_offset": 0,
       "segments": [
         {
-          "type": "time",
-          "style": "plain",
           "foreground": "#ffc107",
           "properties": {
+            "template": " {{ .CurrentDate | date .Format }} ",
             "time_format": "[15:04:05]"
-          }
+          },
+          "style": "plain",
+          "type": "time"
         },
         {
           "background": "#18354c",
           "foreground": "#ffc107",
-          "leading_diamond": "",
-          "powerline_symbol": "",
+          "leading_diamond": "\ue0b6",
+          "powerline_symbol": "\ue0b0",
           "properties": {
-            "prefix": "  ",
-            "style": "folder"
+            "style": "folder",
+            "template": " \ue5ff {{ .Path }} "
           },
           "style": "diamond",
-          "trailing_diamond": "",
+          "trailing_diamond": "\ue0b0",
           "type": "path"
         },
         {
           "background": "#18354c",
           "foreground": "#ffc107",
-          "powerline_symbol": "",
+          "powerline_symbol": "\ue0b0",
           "properties": {
-            "display_stash_count": true,
-            "display_upstream_icon": true,
-            "status_colors_enabled": false
+            "fetch_stash_count": true,
+            "fetch_upstream_icon": true,
+            "template": " {{ .HEAD }} {{ .BranchStatus }}{{ if .Working.Changed }} \uf044 {{ .Working.String }}{{ end }}{{ if and (.Staging.Changed) (.Working.Changed) }} |{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0}} \uf692 {{ .StashCount }}{{ end }}{{ if gt .WorktreeCount 0}} \uf1bb {{ .WorktreeCount }}{{ end }} "
           },
           "style": "powerline",
           "type": "git"
@@ -41,10 +41,9 @@
         {
           "background": "#ffc107",
           "foreground": "#18354c",
-          "powerline_symbol": "",
+          "powerline_symbol": "\ue0b0",
           "properties": {
-            "prefix": " \uE7AD ",
-            "template": "{{.Profile}}{{if .Region}}@{{.Region}}{{end}}"
+            "template": " \ue7ad {{.Profile}}{{if .Region}}@{{.Region}}{{end}} "
           },
           "style": "powerline",
           "type": "aws"
@@ -52,14 +51,17 @@
         {
           "background": "#ff0000",
           "foreground": "#18354c",
-          "powerline_symbol": "",
+          "powerline_symbol": "\ue0b0",
+          "properties": {
+            "template": " \uf0e7 "
+          },
           "style": "powerline",
           "type": "root"
         }
       ],
-      "type": "prompt",
-      "vertical_offset": 0
+      "type": "prompt"
     }
   ],
-  "final_space": true
+  "final_space": true,
+  "version": 1
 }

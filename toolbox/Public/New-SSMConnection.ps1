@@ -28,11 +28,11 @@ function New-SSMConnection {
 
   [CmdletBinding()]
   param (
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $false)]
     [string]
     $Profile,
 
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $false)]
     [string]
     $Region,
 
@@ -70,14 +70,19 @@ function New-SSMConnection {
   # Import module
   Import-Module AWSPowerShell.NetCore
 
-  # Set credentials
-  try {
-    Set-AWSCredentials -ProfileName $profile
+  # Set credentials if passed
+  if ($profile) {
+    try {
+      Set-AWSCredentials -ProfileName $profile
+    }
+    catch {
+      Write-Error "Unable to load profile: $_" -ErrorAction Stop
+    }
   }
-  catch {
-    Write-Error "Unable to load profile: $_" -ErrorAction Stop
+
+  if ($region) {
+    Set-DefaultAWSRegion $Region
   }
-  Set-DefaultAWSRegion $Region
 
   Write-Host "$(Get-Timestamp) Initialised with profile $($profile) in region $($region)"
 
