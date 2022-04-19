@@ -18,7 +18,7 @@ $destinationModule = Join-Path -Path $destinationPath -ChildPath $manifestInfo.R
 $formatsFile = $manifestInfo.FormatsToProcess
 
 $publicFunctions = Get-ChildItem -Path $SourcePath -Include 'Public' -Recurse |
-    Get-ChildItem -Filter *.ps1
+Get-ChildItem -Filter *.ps1
 
 
 # Remove out directory to allow rebuilding
@@ -33,7 +33,7 @@ $null = New-Item -ItemType Directory -Name $OutputFolder -Path $SourcePath
 $manifestContent = Get-Content $moduleManifest
 $null = $manifestContent -replace "^(#? ?FunctionsToExport = )((@\(\))*|'[*]')$",
     ("FunctionsToExport = @({1}    '{0}'{1})" -f ($publicFunctions.BaseName -join "',`r`n    '"), [System.Environment]::NewLine) |
-        Set-Content -Path (Join-Path -Path $destinationPath -ChildPath $moduleManifest.Name)
+Set-Content -Path (Join-Path -Path $destinationPath -ChildPath $moduleManifest.Name)
 
 # Copy all functions to a single psm1 file
 Get-ChildItem -Path $SourcePath -Recurse -Include *.ps1 -Exclude build.ps1 | ForEach-Object {

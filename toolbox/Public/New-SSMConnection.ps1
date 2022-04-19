@@ -79,93 +79,117 @@ function New-SSMConnection {
       Write-Error "Unable to load profile: $_" -ErrorAction Stop
     }
   }
+  else {
+    if ($env:AWS_ACCESS_KEY_ID) {
+      $Profile = "envVars"
+    }
+    else {
+      Write-Host "$(Get-Timestamp) ERROR: Could not find AWS credentials in env vars or parameters" -ForegroundColor Red
+    }
+  }
 
   if ($region) {
     Set-DefaultAWSRegion $Region
   }
-
-  Write-Host "$(Get-Timestamp) Initialised with profile $($profile) in region $($region)"
-
-  # Get instances
-  if ([string]::IsNullOrEmpty($InstanceId)) {
-    Write-Host "$(Get-Timestamp) Getting running instances..."
-    try { 
-      $ec2Instances = (Get-EC2Instance).RunningInstance | Where-Object { $_.State.Name -eq "running" }
+  else {
+    if ($env:AWS_DEFAULT_REGION) {
+      $Region = $env:AWS_DEFAULT_REGION
     }
-    catch {
-      Write-Error "Could not get instances: $_" -ErrorAction Stop
+    else {
+      Write-Host "$(Get-Timestamp) ERROR: Could not find AWS region in env vars or parameters" -ForegroundColor Red
     }
+  }
 
-    # Display for selection
-    Write-Host "$(Get-Timestamp) Got $($ec2Instances.Count) running instances:"
-    $instanceOutput = @()
-    $count = 0
-    foreach ($instance in $ec2Instances) {
-      try {
-        $name = ($instance.Tags | Where-Object { $_.Key -eq "Name" }).Value
+  if ($Profile -and $Region) {
+
+    Write-Host "$(Get-Timestamp) Initialised with profile $($profile) in region $($region)"
+
+    # Get instances
+    if ([string]::IsNullOrEmpty($InstanceId)) {
+      Write-Host "$(Get-Timestamp) Getting running instances..."
+      try { 
+        $ec2Instances = (Get-EC2Instance).RunningInstance | Where-Object { $_.State.Name -eq "running" }
       }
       catch {
-        $name = ""
+        Write-Error "Could not get instances: $_" -ErrorAction Stop
       }
-      $instanceSplat = NEw-Object -TypeName PSObject -Property @{
-        Index      = $count
-        InstanceId = $instance.InstanceId
-        Name       = $name
-        State      = $instance.State.Name
-        LaunchTime = $instance.LaunchTime
+
+      # Display for selection
+      Write-Host "$(Get-Timestamp) Got $($ec2Instances.Count) running instances:"
+      $instanceOutput = @()
+      $count = 0
+      foreach ($instance in $ec2Instances) {
+        try {
+          $name = ($instance.Tags | Where-Object { $_.Key -eq "Name" }).Value
+        }
+        catch {
+          $name = ""
+        }
+        $instanceSplat = NEw-Object -TypeName PSObject -Property @{
+          Index      = $count
+          InstanceId = $instance.InstanceId
+          Name       = $name
+          State      = $instance.State.Name
+          LaunchTime = $instance.LaunchTime
+        }
+        $instanceOutput += $instanceSplat  
+        $count++
       }
-      $instanceOutput += $instanceSplat  
-      $count++
-    }
 
-    $instanceOutput | Format-Table Index, InstanceId, Name, State, LaunchTime
+      $instanceOutput | Format-Table Index, InstanceId, Name, State, LaunchTime
 
-    # Get selection
-    $selectionInstance = Read-Host -Prompt "$(Get-Timestamp) Enter index of instance to connect to"
-    if ($selectionInstance -eq "") {
-      Write-Host "$(Get-Timestamp) No instance selected, exiting"
-      return
-    }
-    else {
-      $InstanceId = $instanceOutput[$selectionInstance].InstanceId
-    }
-  } 
-
-  # Ask for port
-  if ([string]::IsNullOrEmpty($LocalPort)) {
-    $selectionPort = Read-Host -Prompt "$(Get-Timestamp) Enter local port to forward (Press enter to accept default: 56789)"
-    if ($selectionPort -eq "") { $selectionPort = "56789" }
-    $LocalPort = $selectionPort
-  }
-
-  # Retrieve password if PEM param
-  if ($PEMFile) {
-    Write-Host "$(Get-Timestamp) -PEMFile parameter detected, attepting to get password..."
-
-    if ((Test-Path $PEMFile) -ne $true) {
-      Write-Host "$(Get-Timestamp) Could not find $($PEMFile), skipping..."
-    }
-    else {
-      $password = Get-EC2PasswordData -InstanceId $InstanceId -PEMFile $PEMFile -Decrypt
-      if ([string]::IsNullOrEmpty($password)) {
-        Write-Host "$(Get-Timestamp) Could not decrypt password, continuing without."
+      # Get selection
+      $selectionInstance = Read-Host -Prompt "$(Get-Timestamp) Enter index of instance to connect to"
+      if ($selectionInstance -eq "") {
+        Write-Host "$(Get-Timestamp) No instance selected, exiting"
+        return
       }
       else {
-        Write-Host "$(Get-Timestamp) Successfully decrypted password."
+        $InstanceId = $instanceOutput[$selectionInstance].InstanceId
+      }
+    } 
+
+    # Ask for port
+    if ([string]::IsNullOrEmpty($LocalPort)) {
+      $selectionPort = Read-Host -Prompt "$(Get-Timestamp) Enter local port to forward (Press enter to accept default: 56789)"
+      if ($selectionPort -eq "") { $selectionPort = "56789" }
+      $LocalPort = $selectionPort
+    }
+
+    # Retrieve password if PEM param
+    if ($PEMFile) {
+      Write-Host "$(Get-Timestamp) -PEMFile parameter detected, attepting to get password..."
+
+      if ((Test-Path $PEMFile) -ne $true) {
+        Write-Host "$(Get-Timestamp) Could not find $($PEMFile), skipping..."
+      }
+      else {
+        $password = Get-EC2PasswordData -InstanceId $InstanceId -PEMFile $PEMFile -Decrypt
+        if ([string]::IsNullOrEmpty($password)) {
+          Write-Host "$(Get-Timestamp) Could not decrypt password, continuing without."
+        }
+        else {
+          Write-Host "$(Get-Timestamp) Successfully decrypted password."
+        }
       }
     }
+
+    # Output selection
+    Write-Host "$(Get-Timestamp) Selected:"
+    Write-Host "Instance ID: $($InstanceId)"
+    Write-Host "Local port: $($LocalPort)"
+    if ([string]::IsNullOrEmpty($password) -ne $true) { Write-Host "Password: $($password)" }
+
+    # Start SSM connection
+    Write-Host "$(Get-Timestamp) Attempting to start SSM connection:"
+
+    if ($profile -ne "envVars") {
+      aws ssm start-session --target $InstanceId --document-name AWS-StartPortForwardingSession --parameters "localPortNumber=$($LocalPort),portNumber=$($RemotePort)" --region $Region --profile $Profile
+    }
+    else {
+      aws ssm start-session --target $InstanceId --document-name AWS-StartPortForwardingSession --parameters "localPortNumber=$($LocalPort),portNumber=$($RemotePort)" --region $Region
+    }
+
+    Write-Host "$(Get-Timestamp) Connection terminated."
   }
-
-  # Output selection
-  Write-Host "$(Get-Timestamp) Selected:"
-  Write-Host "Instance ID: $($InstanceId)"
-  Write-Host "Local port: $($LocalPort)"
-  if ([string]::IsNullOrEmpty($password) -ne $true) { Write-Host "Password: $($password)" }
-
-  # Start SSM connection
-  Write-Host "$(Get-Timestamp) Attempting to start SSM connection:"
-
-  aws ssm start-session --target $InstanceId --document-name AWS-StartPortForwardingSession --parameters "localPortNumber=$($LocalPort),portNumber=$($RemotePort)" --region $Region --profile $Profile
-
-  Write-Host "$(Get-Timestamp) Connection terminated."
 }
