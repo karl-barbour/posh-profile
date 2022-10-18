@@ -26,5 +26,68 @@ foreach ($FontItem in (Get-ChildItem -Path $(Join-Path $repoLocation "fonts") | 
 # Update WindowsTerminal settings
 Copy-Item (Join-Path $repoLocation "windowsterminal\settings.json") "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 
+# Update modules
+$ManagedModules = @(
+  "Az.Resources",
+  "AWSPowerShell.NetCore",
+  "Microsoft.Graph" #https://www.powershellgallery.com/packages/Microsoft.Graph/
+)
+
+$ManagedModulesForce = @(
+  ## Modules that require a -Force parameter for install
+)
+
+$TrustedRepositories = @(
+  "PSGallery"
+)
+
+Write-Output "Modules managed by this profile:"
+foreach ($managedModule in $ManagedModules) {
+  Write-Output "- $managedModule"
+}
+
+Write-Output "`nRepositories trusted by this profile:"
+foreach ($repository in $TrustedRepositories) {
+  Write-Output "- $repository"
+}
+
+foreach ($repository in $TrustedRepositories) {
+  if ((Get-PSRepository -Name $repository).InstallationPolicy -eq "Untrusted") {
+    Write-Output "Setting $repository to trusted status`n"
+    Set-PSRepository -Name $repository -InstallationPolicy Trusted
+  }
+}
+
+foreach ($module in $ManagedModules) {
+  Write-Output "`nInstalling/Updating $module"
+  try {
+    Get-InstalledModule -Name $module -ErrorAction Stop | Out-Null
+    Write-Output "$module installed. Checking for updates."
+    Update-Module -Name $module -Confirm:$false
+  }
+  catch {
+    Write-Output "$module not installed. Installing."
+    Install-Module -Name $module -Confirm:$false
+  }
+}
+
+foreach ($module in $ManagedModulesForce) {
+  Write-Output "`nInstalling/Updating $module"
+  try {
+    Get-InstalledModule -Name $module -ErrorAction Stop | Out-Null
+    Write-Output "$module installed. Checking for updates."
+    Update-Module -Name $module -Confirm:$false
+  }
+  catch {
+    Write-Output "$module not installed. Installing."
+    Install-Module -Name $module -Force -Confirm:$false
+  }
+}
+
 # Import modules
-if ((Get-Module AWSPowerShell.NetCore) -eq $null) { Import-Module AWSPowerShell.NetCore -Scope Global }
+$ImportModules = @(
+  "AWSPowerShell.NetCore"
+)
+
+Write-Host "`nImporting modules: $ImportModules"
+Import-Module -Name $ImportModules
