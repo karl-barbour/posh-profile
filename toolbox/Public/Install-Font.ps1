@@ -1,20 +1,5 @@
-<#
-	.SYNOPSIS
-		Install Open Text and True Type Fonts
-	
-	.DESCRIPTION
-		This script will install OTF and TTF fonts that exist in the same directory as the script.
-	
-	.NOTES
-		===========================================================================
-		Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2021 v5.8.187
-		Created on:   	6/24/2021 9:36 AM
-		Created by:   	Mick Pletcher
-		Filename:     	InstallFonts.ps1
-		===========================================================================
-#>
-
-<#
+function Install-Font {
+	<#
 	.SYNOPSIS
 		Install the font
 	
@@ -28,15 +13,14 @@
 		Outputs status
 	
 	.EXAMPLE
-				PS C:\> Install-Font -FontFile $value1
+		Install-Font -FontFile $value1
 
-.EXAMPLE
-				PS C:\> Install-Font -FontFile $value1 -Verbose
+	.EXAMPLE
+		Install-Font -FontFile $value1 -Verbose
 	
 	.NOTES
 		Additional information about the function.
-#>
-function Install-Font {
+	#>
 	param
 	(
 		[Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][System.IO.FileInfo]$FontFile

@@ -47,7 +47,8 @@ function Set-AWSProfile {
       $ENV:AWS_PROFILE = $($profiles[$selection])
       Set-AWSCredential -ProfileName $($profiles[$selection]) -Scope Global
       Write-Host "Selected $($ENV:AWS_PROFILE)"
-    } else {
+    }
+    else {
       Write-Error "Profile parameter not found and ~/.aws/config does not exist"
     }
   }

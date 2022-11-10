@@ -1,5 +1,10 @@
 # Variables
-$repoLocation = "G:\git\posh-profile"
+if ($ENV:COMPUTERNAME -eq "KARL-DESKTOP") { 
+  $repoLocation = "G:\git\posh-profile"
+}
+else {
+  $repoLocation = "C:\git\posh-profile"
+}
 
 # Install posh if not found
 if (Get-Module -ListAvailable -Name oh-my-posh) {
@@ -14,7 +19,7 @@ else {
 Set-PoshPrompt -Theme (Join-Path $repoLocation "posh\.mytheme.omp.json")
 
 # Import toolbox
-Import-Module (Join-Path $repoLocation "toolbox\output\Toolbox.psm1")
+Import-Module (Join-Path $repoLocation "toolbox\output\Toolbox.psm1") -Force
 
 # Install fonts
 foreach ($FontItem in (Get-ChildItem -Path $(Join-Path $repoLocation "fonts") | Where-Object {
@@ -26,62 +31,84 @@ foreach ($FontItem in (Get-ChildItem -Path $(Join-Path $repoLocation "fonts") | 
 # Update WindowsTerminal settings
 Copy-Item (Join-Path $repoLocation "windowsterminal\settings.json") "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 
-# Update modules
-$ManagedModules = @(
-  "Az.Resources",
-  "AWSPowerShell.NetCore",
-  "Microsoft.Graph" #https://www.powershellgallery.com/packages/Microsoft.Graph/
-)
-
-$ManagedModulesForce = @(
-  ## Modules that require a -Force parameter for install
-)
-
-$TrustedRepositories = @(
-  "PSGallery"
-)
-
-Write-Output "Modules managed by this profile:"
-foreach ($managedModule in $ManagedModules) {
-  Write-Output "- $managedModule"
+# Check if $env:TEMP\poshprofile.txt exists - Create with current timestamp if not, or compare to current timestamp if so - only update if no file or >24h
+$tempFilePath = "$($env:TEMP)\poshprofile.txt"
+$updateNeeded = $false
+if ((Test-Path $tempFilePath) -eq $false) {
+  New-Item -Path $tempFilePath
+  Get-Date -Format "yyyy-MM-ddTHH:mm:ss" | Out-File $tempFilePath
+  $updateNeeded = $true
 }
-
-Write-Output "`nRepositories trusted by this profile:"
-foreach ($repository in $TrustedRepositories) {
-  Write-Output "- $repository"
-}
-
-foreach ($repository in $TrustedRepositories) {
-  if ((Get-PSRepository -Name $repository).InstallationPolicy -eq "Untrusted") {
-    Write-Output "Setting $repository to trusted status`n"
-    Set-PSRepository -Name $repository -InstallationPolicy Trusted
+else {
+  $oldDate = [datetime]::ParseExact((Get-Content $tempFilePath), "yyyy-MM-ddTHH:mm:ss", $null)
+  $newDate = Get-Date
+  $dateDiff = $newDate - $oldDate
+  if ($dateDiff.Hours -ge 23) {
+    $updateNeeded = $true
   }
 }
 
-foreach ($module in $ManagedModules) {
-  Write-Output "`nInstalling/Updating $module"
-  try {
-    Get-InstalledModule -Name $module -ErrorAction Stop | Out-Null
-    Write-Output "$module installed. Checking for updates."
-    Update-Module -Name $module -Confirm:$false
+if ($updateNeeded -eq $true) {
+  # Update modules
+  $ManagedModules = @(
+    "Az.Resources",
+    "AWSPowerShell.NetCore",
+    "Microsoft.Graph" #https://www.powershellgallery.com/packages/Microsoft.Graph/
+  )
+
+  $ManagedModulesForce = @(
+    ## Modules that require a -Force parameter for install
+  )
+
+  $TrustedRepositories = @(
+    "PSGallery"
+  )
+
+  Write-Output "Modules managed by this profile:"
+  foreach ($managedModule in $ManagedModules) {
+    Write-Output "- $managedModule"
   }
-  catch {
-    Write-Output "$module not installed. Installing."
-    Install-Module -Name $module -Confirm:$false
+
+  Write-Output "`nRepositories trusted by this profile:"
+  foreach ($repository in $TrustedRepositories) {
+    Write-Output "- $repository"
+  }
+
+  foreach ($repository in $TrustedRepositories) {
+    if ((Get-PSRepository -Name $repository).InstallationPolicy -eq "Untrusted") {
+      Write-Output "Setting $repository to trusted status`n"
+      Set-PSRepository -Name $repository -InstallationPolicy Trusted
+    }
+  }
+
+  foreach ($module in $ManagedModules) {
+    Write-Output "`nInstalling/Updating $module"
+    try {
+      Get-InstalledModule -Name $module -ErrorAction Stop | Out-Null
+      Write-Output "$module installed. Checking for updates."
+      Update-Module -Name $module -Confirm:$false -Scope CurrentUser
+    }
+    catch {
+      Write-Output "$module not installed. Installing."
+      Install-Module -Name $module -Confirm:$false -Scope CurrentUser
+    }
+  }
+
+  foreach ($module in $ManagedModulesForce) {
+    Write-Output "`nInstalling/Updating $module"
+    try {
+      Get-InstalledModule -Name $module -ErrorAction Stop | Out-Null
+      Write-Output "$module installed. Checking for updates."
+      Update-Module -Name $module -Confirm:$false -Scope CurrentUser
+    }
+    catch {
+      Write-Output "$module not installed. Installing."
+      Install-Module -Name $module -Force -Confirm:$false -Scope CurrentUser
+    }
   }
 }
-
-foreach ($module in $ManagedModulesForce) {
-  Write-Output "`nInstalling/Updating $module"
-  try {
-    Get-InstalledModule -Name $module -ErrorAction Stop | Out-Null
-    Write-Output "$module installed. Checking for updates."
-    Update-Module -Name $module -Confirm:$false
-  }
-  catch {
-    Write-Output "$module not installed. Installing."
-    Install-Module -Name $module -Force -Confirm:$false
-  }
+else {
+  Write-Host "Skipping module updates (last updated $($dateDiff) ago at $($oldDate))"
 }
 
 # Import modules

@@ -3,7 +3,7 @@ function Set-AWSRegion {
   .SYNOPSIS
       Set-AWSRegiopn
   .DESCRIPTION
-      Sets $ENV:AWS_REGION for lazy people. C
+      Sets $ENV:AWS_REGION for lazy people. 
   .PARAMETER Region
       Specify a profile's name. Optional.
   .EXAMPLE
