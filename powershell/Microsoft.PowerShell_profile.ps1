@@ -43,7 +43,7 @@ else {
   $oldDate = [datetime]::ParseExact((Get-Content $tempFilePath), "yyyy-MM-ddTHH:mm:ss", $null)
   $newDate = Get-Date
   $dateDiff = $newDate - $oldDate
-  if ($dateDiff.Hours -ge 23) {
+  if ($dateDiff.Days -ge 1) {
     $updateNeeded = $true
   }
 }
@@ -106,6 +106,8 @@ if ($updateNeeded -eq $true) {
       Install-Module -Name $module -Force -Confirm:$false -Scope CurrentUser
     }
   }
+
+  Get-Date -Format "yyyy-MM-ddTHH:mm:ss" | Out-File $tempFilePath
 }
 else {
   Write-Host "Skipping module updates (last updated $($dateDiff) ago at $($oldDate))"
