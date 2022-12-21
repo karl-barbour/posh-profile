@@ -52,7 +52,7 @@ if ($updateNeeded -eq $true) {
   # Update modules
   $ManagedModules = @(
     "Az.Resources",
-    "AWSPowerShell.NetCore",
+    "AWS.Tools.Installer",
     "Microsoft.Graph" #https://www.powershellgallery.com/packages/Microsoft.Graph/
   )
 
@@ -64,9 +64,20 @@ if ($updateNeeded -eq $true) {
     "PSGallery"
   )
 
+  $AWSModules = @(
+    "AWS.Tools.CloudFormation",
+    "AWS.Tools.EC2",
+    "AWS.Tools.S3"
+  )
+
   Write-Output "Modules managed by this profile:"
   foreach ($managedModule in $ManagedModules) {
     Write-Output "- $managedModule"
+  }
+
+  Write-Output "AWSModules managed by this profile:"
+  foreach ($AWSModule in $AWSModules) {
+    Write-Output "- $AWSModule"
   }
 
   Write-Output "`nRepositories trusted by this profile:"
@@ -107,6 +118,25 @@ if ($updateNeeded -eq $true) {
     }
   }
 
+  # foreach ($module in $AWSModules) {
+  #   Write-Output "`nInstalling/Updating $module"
+  #   try {
+  #     Get-InstalledModule -Name $module -ErrorAction Stop | Out-Null
+  #     Write-Output "$module installed. Checking for updates."
+  #     Update-AWSToolsModule -Name $module -Confirm:$false -Scope CurrentUser -CleanUp
+  #   }
+  #   catch {
+  #     Write-Output "$module not installed. Installing."
+  #     Install-AWSToolsModule -Name $module -Confirm:$false -Scope CurrentUser -CleanUp
+  #   }
+  # }
+
+  Write-Host "Installing missing AWS Modules"
+  Install-AWSToolsModule $AWSModules -CleanUp -Force
+
+  Write-Host "Updating AWS Modules"
+  Update-AWSToolsModule -CleanUp -Force
+
   Get-Date -Format "yyyy-MM-ddTHH:mm:ss" | Out-File $tempFilePath
 }
 else {
@@ -115,7 +145,7 @@ else {
 
 # Import modules
 $ImportModules = @(
-  "AWSPowerShell.NetCore"
+  "AWS.Tools.Installer"
 )
 
 Write-Host "`nImporting modules: $ImportModules"
