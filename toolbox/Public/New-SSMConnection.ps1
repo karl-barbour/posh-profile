@@ -68,7 +68,7 @@ function New-SSMConnection {
   }
 
   # Import module
-  Import-Module AWSPowerShell.NetCore
+  Import-Module AWS.Tools.EC2
 
   # Set credentials if passed
   if ($profile) {
