@@ -353,7 +353,7 @@ function New-SSMConnection {
     if ([string]::IsNullOrEmpty($InstanceId)) {
       Write-Host "$(Get-Timestamp) Getting running instances..."
       try { 
-        $ec2Instances = (Get-EC2Instance).RunningInstance | Where-Object { $_.State.Name -eq "running" }
+        $ec2Instances = (Get-EC2Instance).Instances | Where-Object { $_.State.Name -eq "running" }
       }
       catch {
         Write-Error "Could not get instances: $_" -ErrorAction Stop
