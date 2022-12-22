@@ -1,9 +1,8 @@
-# Variables
-if ($ENV:COMPUTERNAME -eq "KARL-DESKTOP") { 
-  $repoLocation = "G:\git\posh-profile"
-}
-else {
-  $repoLocation = "C:\git\posh-profile"
+# Get repo location
+$repoLocation = [System.Environment]::GetEnvironmentVariable('poshProfile', 'User')
+if ([string]::IsNullOrEmpty($repoLocation)) {
+  Write-Host "`$env:PoshProfile is empty, please run Install-Profile.ps1 manually to set it again" -ForegroundColor Red
+  exit 1
 }
 
 # Install posh if not found
@@ -19,7 +18,7 @@ else {
 Set-PoshPrompt -Theme (Join-Path $repoLocation "posh\.mytheme.omp.json")
 
 # Import toolbox
-Import-Module (Join-Path $repoLocation "toolbox\output\Toolbox.psm1") -Force
+Import-Module (Join-Path $repoLocation "toolbox\output\Toolbox.psd1") -Force
 
 # Install fonts
 foreach ($FontItem in (Get-ChildItem -Path $(Join-Path $repoLocation "fonts") | Where-Object {
@@ -67,7 +66,8 @@ if ($updateNeeded -eq $true) {
   $AWSModules = @(
     "AWS.Tools.CloudFormation",
     "AWS.Tools.EC2",
-    "AWS.Tools.S3"
+    "AWS.Tools.S3",
+    "AWS.Tools.RDS"
   )
 
   Write-Output "Modules managed by this profile:"
@@ -97,7 +97,7 @@ if ($updateNeeded -eq $true) {
     try {
       Get-InstalledModule -Name $module -ErrorAction Stop | Out-Null
       Write-Output "$module installed. Checking for updates."
-      Update-Module -Name $module -Confirm:$false -Scope CurrentUser
+      Update-Module -Name $module -Confirm:$false -Scope CurrentUser -Force
     }
     catch {
       Write-Output "$module not installed. Installing."

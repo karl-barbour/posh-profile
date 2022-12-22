@@ -41,3 +41,5 @@ Get-ChildItem -Path $SourcePath -Recurse -Include *.ps1 -Exclude build.ps1 | For
     Get-Content -Path $_.FullName | Add-Content -Path $destinationModule
     "" | Add-Content -Path $destinationModule
 }
+
+Write-Host "Toolbox built"

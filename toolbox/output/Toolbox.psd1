@@ -70,13 +70,16 @@ Copyright = '(c) 2021 Karl Barbour. All rights reserved.'
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = @(
+    'Clear-PoshUpdate',
     'Get-CommandInfo',
     'Get-RandomString',
     'Get-Syntax',
+    'Get-Toolbox',
     'Install-Font',
     'New-SSMConnection',
     'Set-AWSProfile',
     'Set-AWSRegion',
+    'Update-PoshProfile',
     'Watch-CFNStack'
 )
 
