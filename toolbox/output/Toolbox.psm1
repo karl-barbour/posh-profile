@@ -1,71 +1,70 @@
 function Clear-PoshUpdate {
-    <#
+  <#
     .SYNOPSIS
       Clear last profile update time.
     .DESCRIPTION
       Clear last profile update time.
     #>
 
-    $path = "$($env:temp)\poshprofile.txt"
-    try { 
-        Remove-Item $path -Force -ErrorAction Stop
-        Write-Host "$path cleared"
-    }
-    catch {
-        Write-Host "$path does not exist"
-    }
+  $path = "$($env:temp)\poshprofile.txt"
+  try { 
+    Remove-Item $path -Force -ErrorAction Stop
+    Write-Host "$path cleared"
+  }
+  catch {
+    Write-Host "$path does not exist"
+  }
 }
-
-Set-Alias -Name clu -Value Clear-PoshUpdate
+Set-Alias -Name clu -Value Clear-PoshUpdate -Scope Global
 
 function Get-CommandInfo {
-  <#
+    <#
   .SYNOPSIS
       Get-Command helper.
   .DESCRIPTION
       Get-Command helper.
   #>
 
-  [CmdletBinding()]
-  param (
-      # The name of a command.
-      [Parameter(Mandatory, ParameterSetName = 'ByName')]
-      [String]$Name,
+    [CmdletBinding()]
+    param (
+        # The name of a command.
+        [Parameter(Mandatory, ParameterSetName = 'ByName')]
+        [String]$Name,
 
-      # A CommandInfo object.
-      [Parameter(Mandatory, ParameterSetName = 'FromCommandInfo')]
-      [System.Management.Automation.CommandInfo]$CommandInfo,
+        # A CommandInfo object.
+        [Parameter(Mandatory, ParameterSetName = 'FromCommandInfo')]
+        [System.Management.Automation.CommandInfo]$CommandInfo,
 
-      # If a module name is specified the private / internal scope of the module will be searched.
-      [String]$ModuleName,
+        # If a module name is specified the private / internal scope of the module will be searched.
+        [String]$ModuleName,
 
-      # Claims and discards any other supplied arguments.
-      [Parameter(ValueFromRemainingArguments, DontShow)]
-      $EaterOfArgs
-  )
+        # Claims and discards any other supplied arguments.
+        [Parameter(ValueFromRemainingArguments, DontShow)]
+        $EaterOfArgs
+    )
 
-  if ($Name) {
-      if ($ModuleName) {
-          try {
-              if (-not ($moduleInfo = Get-Module $ModuleName)) {
-                  $moduleInfo = Import-Module $ModuleName -Global -PassThru
-              }
-              $CommandInfo = & $moduleInfo ([ScriptBlock]::Create('Get-Command {0}' -f $Name))
-          }
-          catch {
-              $pscmdlet.ThrowTerminatingError($_)
-          }
-      }
-      else {
-          $CommandInfo = Get-Command -Name $Name
-      }
-  }
+    if ($Name) {
+        if ($ModuleName) {
+            try {
+                if (-not ($moduleInfo = Get-Module $ModuleName)) {
+                    $moduleInfo = Import-Module $ModuleName -Global -PassThru
+                }
+                $CommandInfo = & $moduleInfo ([ScriptBlock]::Create('Get-Command {0}' -f $Name))
+            }
+            catch {
+                $pscmdlet.ThrowTerminatingError($_)
+            }
+        }
+        else {
+            $CommandInfo = Get-Command -Name $Name
+        }
+    }
 
-  if ($CommandInfo -is [System.Management.Automation.AliasInfo]) {
-      $CommandInfo = $CommandInfo.ResolvedCommand
-  }
+    if ($CommandInfo -is [System.Management.Automation.AliasInfo]) {
+        $CommandInfo = $CommandInfo.ResolvedCommand
+    }
 
-  return $CommandInfo
+    return $CommandInfo
 }
 
 function Get-RandomString {
@@ -80,8 +79,8 @@ function Get-RandomString {
     )
     process {
         foreach ($randomString in $StringLength) {
-            $chars = ((65..90) + (97..122) | ForEach-Object { $_ -as [char]})
-            $specialChars = ((33..46) | ForEach-Object { $_ -as [char]})
+            $chars = ((65..90) + (97..122) | ForEach-Object { $_ -as [char] })
+            $specialChars = ((33..46) | ForEach-Object { $_ -as [char] })
             $outputString = $chars | Get-Random -Count ($StringLength - $SpecialCharacters)
             $outputString += $SpecialChars | Get-Random -Count $SpecialCharacters
             -join ($outputString | Get-Random -Count $StringLength)
@@ -164,23 +163,35 @@ function Get-Syntax {
 }
 
 function Get-Toolbox {
-    <#
+  <#
     .SYNOPSIS
       Gets commands in the toolbox
     .DESCRIPTION
       Gets commands in the toolbox
     #>
 
-    $repoPath = [System.Environment]::GetEnvironmentVariable('poshProfile', 'User')
-    if ([string]::IsNullOrEmpty($repoPath)) {
-        Write-Host "`$env:PoshProfile is empty, please run Install-Profile.ps1 manually to set it again" -ForegroundColor Red
+  $repoPath = [System.Environment]::GetEnvironmentVariable('poshProfile', 'User')
+  if ([string]::IsNullOrEmpty($repoPath)) {
+    Write-Host "`$env:PoshProfile is empty, please run Install-Profile.ps1 manually to set it again" -ForegroundColor Red
+  }
+  else {
+    $commands = (Get-ChildItem (Join-Path $repoPath "toolbox/public")).Name -Replace ".ps1", ""
+    $aliases = @{
+      "Clear-PoshUpdate"   = "clu";
+      "Update-PoshProfile" = "upp";
+      "Get-Toolbox"        = "toolbox";
+      "Set-AWSProfile"     = "awsprofile";
+      "Set-AWSRegion"      = "awsregion"
     }
-    else {
-        Get-ChildItem (Join-Path $repoPath "toolbox/public") | Format-Table Name
-    }
+    
+
+    $commands | ForEach-Object { try { $aliases.Add($_, "") } catch {} }
+
+    $aliases.GetEnumerator() | Sort-Object -Property Name
+  }
 }
 
-Set-Alias -Name toolbox -Value Get-Toolbox
+Set-Alias -Name toolbox -Value Get-Toolbox -Scope Global
 
 function Install-Font {
 	<#
@@ -211,7 +222,7 @@ function Install-Font {
 	)
 	
 	#Get Font Name from the File's Extended Attributes
-	$oShell = new-object -com shell.application
+	$oShell = New-Object -com shell.application
 	$Folder = $oShell.namespace($FontFile.DirectoryName)
 	$Item = $Folder.Items().Item($FontFile.Name)
 	$FontName = $Folder.GetDetailsOf($Item, 21)
@@ -277,7 +288,7 @@ function Install-Font {
 			if ($Verbose) { Write-Host ('Failed') -ForegroundColor Red }
 			$AddKey = $false
 		}
-		if ($Verbose) { write-warning $_.exception.message }
+		if ($Verbose) { Write-Warning $_.exception.message }
 	}
 	if ($Verbose) { Write-Host }
 }
@@ -409,7 +420,7 @@ function New-SSMConnection {
         catch {
           $name = ""
         }
-        $instanceSplat = NEw-Object -TypeName PSObject -Property @{
+        $instanceSplat = New-Object -TypeName PSObject -Property @{
           Index      = $count
           InstanceId = $instance.InstanceId
           Name       = $name
@@ -448,7 +459,7 @@ function New-SSMConnection {
         Write-Host "$(Get-Timestamp) Could not find $($PEMFile), skipping..."
       }
       else {
-        $password = Get-EC2PasswordData -InstanceId $InstanceId -PEMFile $PEMFile -Decrypt
+        $password = Get-EC2PasswordData -InstanceId $InstanceId -PemFile $PEMFile -Decrypt
         if ([string]::IsNullOrEmpty($password)) {
           Write-Host "$(Get-Timestamp) Could not decrypt password, continuing without."
         }
@@ -533,9 +544,7 @@ function Set-AWSProfile {
     }
   }
 }
-
-# Set an alias too... because why not
-Set-Alias awsprofile Set-AWSProfile
+Set-Alias -Name awsprofile -Value Set-AWSProfile -Scope Global
 
 function Set-AWSRegion {
   <#
@@ -581,29 +590,27 @@ function Set-AWSRegion {
     Write-Host "Selected $($ENV:AWS_DEFAULT_REGION)"
   }
 }
-
-# Set an alias too... because why not
-Set-Alias awsregion Set-AWSRegion
+Set-Alias -Name awsregion -Value Set-AWSRegion -Scope Global
 
 function Update-PoshProfile {
-    <#
+  <#
     .SYNOPSIS
       Clear last profile update time.
     .DESCRIPTION
       Clear last profile update time.
     #>
 
-    $repoPath = [System.Environment]::GetEnvironmentVariable('poshProfile', 'User')
-    if ([string]::IsNullOrEmpty($repoPath)) {
-        Write-Host "`$env:PoshProfile is empty, please run Install-Profile.ps1 manually to set it again" -ForegroundColor Red
-    }
-    else {
-        & (Join-Path $repoPath "toolbox/Build.ps1")
-        & (Join-Path $repoPath "Install-Profile.ps1")
-    }
+  $repoPath = [System.Environment]::GetEnvironmentVariable('poshProfile', 'User')
+  if ([string]::IsNullOrEmpty($repoPath)) {
+    Write-Host "`$env:PoshProfile is empty, please run Install-Profile.ps1 manually to set it again" -ForegroundColor Red
+  }
+  else {
+    & (Join-Path $repoPath "toolbox/Build.ps1")
+    & (Join-Path $repoPath "Install-Profile.ps1")
+  }
 }
 
-Set-Alias -Name upp -Value Update-PoshProfile
+Set-Alias -Name upp -Value Update-PoshProfile -Scope Global
 
 function Watch-CFNStack {
     <#
@@ -652,7 +659,7 @@ function Watch-CFNStack {
     $magenta = @("UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS", "UPDATE_COMPLETE_CLEANUP_IN_PROGRESS")
 
     while ($true) { 
-        Get-CFNStackEvents -StackName $stackName -NoAutoIteration | Select-Object -First 30 | out-host 
+        Get-CFNStackEvents -StackName $stackName -NoAutoIteration | Select-Object -First 30 | Out-Host 
         $status = (Get-CFNStack -StackName $stackName).StackStatus.Value 
     
         if ($green -contains $status) {

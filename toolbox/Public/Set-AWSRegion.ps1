@@ -42,6 +42,4 @@ function Set-AWSRegion {
     Write-Host "Selected $($ENV:AWS_DEFAULT_REGION)"
   }
 }
-
-# Set an alias too... because why not
-Set-Alias awsregion Set-AWSRegion
+Set-Alias -Name awsregion -Value Set-AWSRegion -Scope Global

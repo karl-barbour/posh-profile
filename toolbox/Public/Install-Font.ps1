@@ -27,7 +27,7 @@ function Install-Font {
 	)
 	
 	#Get Font Name from the File's Extended Attributes
-	$oShell = new-object -com shell.application
+	$oShell = New-Object -com shell.application
 	$Folder = $oShell.namespace($FontFile.DirectoryName)
 	$Item = $Folder.Items().Item($FontFile.Name)
 	$FontName = $Folder.GetDetailsOf($Item, 21)
@@ -93,7 +93,7 @@ function Install-Font {
 			if ($Verbose) { Write-Host ('Failed') -ForegroundColor Red }
 			$AddKey = $false
 		}
-		if ($Verbose) { write-warning $_.exception.message }
+		if ($Verbose) { Write-Warning $_.exception.message }
 	}
 	if ($Verbose) { Write-Host }
 }

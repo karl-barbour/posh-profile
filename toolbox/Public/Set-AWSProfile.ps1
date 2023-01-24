@@ -53,6 +53,4 @@ function Set-AWSProfile {
     }
   }
 }
-
-# Set an alias too... because why not
-Set-Alias awsprofile Set-AWSProfile
+Set-Alias -Name awsprofile -Value Set-AWSProfile -Scope Global

@@ -125,7 +125,7 @@ function New-SSMConnection {
         catch {
           $name = ""
         }
-        $instanceSplat = NEw-Object -TypeName PSObject -Property @{
+        $instanceSplat = New-Object -TypeName PSObject -Property @{
           Index      = $count
           InstanceId = $instance.InstanceId
           Name       = $name
@@ -164,7 +164,7 @@ function New-SSMConnection {
         Write-Host "$(Get-Timestamp) Could not find $($PEMFile), skipping..."
       }
       else {
-        $password = Get-EC2PasswordData -InstanceId $InstanceId -PEMFile $PEMFile -Decrypt
+        $password = Get-EC2PasswordData -InstanceId $InstanceId -PemFile $PEMFile -Decrypt
         if ([string]::IsNullOrEmpty($password)) {
           Write-Host "$(Get-Timestamp) Could not decrypt password, continuing without."
         }

@@ -45,7 +45,7 @@ function Watch-CFNStack {
     $magenta = @("UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS", "UPDATE_COMPLETE_CLEANUP_IN_PROGRESS")
 
     while ($true) { 
-        Get-CFNStackEvents -StackName $stackName -NoAutoIteration | Select-Object -First 30 | out-host 
+        Get-CFNStackEvents -StackName $stackName -NoAutoIteration | Select-Object -First 30 | Out-Host 
         $status = (Get-CFNStack -StackName $stackName).StackStatus.Value 
     
         if ($green -contains $status) {

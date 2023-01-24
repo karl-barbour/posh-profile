@@ -10,8 +10,8 @@ function Get-RandomString {
     )
     process {
         foreach ($randomString in $StringLength) {
-            $chars = ((65..90) + (97..122) | ForEach-Object { $_ -as [char]})
-            $specialChars = ((33..46) | ForEach-Object { $_ -as [char]})
+            $chars = ((65..90) + (97..122) | ForEach-Object { $_ -as [char] })
+            $specialChars = ((33..46) | ForEach-Object { $_ -as [char] })
             $outputString = $chars | Get-Random -Count ($StringLength - $SpecialCharacters)
             $outputString += $SpecialChars | Get-Random -Count $SpecialCharacters
             -join ($outputString | Get-Random -Count $StringLength)

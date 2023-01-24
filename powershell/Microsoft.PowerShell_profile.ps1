@@ -67,7 +67,9 @@ if ($updateNeeded -eq $true) {
     "AWS.Tools.CloudFormation",
     "AWS.Tools.EC2",
     "AWS.Tools.S3",
-    "AWS.Tools.RDS"
+    "AWS.Tools.RDS",
+    "AWS.Tools.SSO", 
+    "AWS.Tools.SSOOIDC"
   )
 
   Write-Output "Modules managed by this profile:"
@@ -150,3 +152,4 @@ $ImportModules = @(
 
 Write-Host "`nImporting modules: $ImportModules"
 Import-Module -Name $ImportModules
+
