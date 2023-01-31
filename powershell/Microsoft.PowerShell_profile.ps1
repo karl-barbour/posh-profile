@@ -5,16 +5,6 @@ if ([string]::IsNullOrEmpty($repoLocation)) {
   exit 1
 }
 
-# Install oh-my-posh if not found
-Write-Host "Installing/Upgrading OhMyPosh:"
-if ((($(winget list JanDeDobbeleer.OhMyPosh) -join "") -match ".*No installed package.*") -eq $true) {
-  winget install JanDeDobbeleer.OhMyPosh -s winget
-}
-else {
-  winget upgrade JanDeDobbeleer.OhMyPosh -s winget
-}
-
-
 # Set profile
 oh-my-posh init pwsh --config (Join-Path $repoLocation "posh\.mytheme.omp.json") | Invoke-Expression
 
@@ -49,6 +39,16 @@ else {
 }
 
 if ($updateNeeded -eq $true) {
+  # Install or upgrade oh-my-posh
+  Write-Host "Installing/Upgrading OhMyPosh:"
+  if ((($(winget list JanDeDobbeleer.OhMyPosh) -join "") -match ".*No installed package.*") -eq $true) {
+    winget install JanDeDobbeleer.OhMyPosh -s winget
+  }
+  else {
+    winget upgrade JanDeDobbeleer.OhMyPosh -s winget
+  }
+
+
   # Update modules
   $ManagedModules = @(
     "Az.Resources",
