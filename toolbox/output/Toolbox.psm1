@@ -522,9 +522,9 @@ function Set-AWSProfile {
     # If no profile param, list all profiles and offer selection
     if (Test-Path "~/.aws/config") {
       $awsconfig = Get-Content "~/.aws/config"
-      $profiles = @()
+      [array]$profiles = @()
       foreach ($line in $awsconfig) {
-        if ($line -match "\[.*\]") { $profiles += $line.replace("[profile ", "").replace("]", "") } # I am very lazy
+        if ($line -match "\[profile .*\]") { $profiles += $line.replace("[profile ", "").replace("]", "") } # I am very lazy
       }
       $profiles = $profiles | Sort-Object
 
@@ -592,6 +592,26 @@ function Set-AWSRegion {
 }
 Set-Alias -Name awsregion -Value Set-AWSRegion -Scope Global
 
+function Update-PoshProfile {
+  <#
+    .SYNOPSIS
+      Clear last profile update time.
+    .DESCRIPTION
+      Clear last profile update time.
+    #>
+
+  $repoPath = [System.Environment]::GetEnvironmentVariable('poshProfile', 'User')
+  if ([string]::IsNullOrEmpty($repoPath)) {
+    Write-Host "`$env:PoshProfile is empty, please run Install-Profile.ps1 manually to set it again" -ForegroundColor Red
+  }
+  else {
+    & (Join-Path $repoPath "toolbox/Build.ps1")
+    & (Join-Path $repoPath "Install-Profile.ps1")
+    Write-Host "Open a new terminal to load new toolbox" -ForegroundColor Yellow
+  }
+}
+
+Set-Alias -Name upp -Value Update-PoshProfile -Scope Global
 
 function Watch-CFNStack {
     <#

@@ -148,7 +148,9 @@ else {
 
 # Import modules
 $ImportModules = @(
-  "AWS.Tools.Installer"
+  "AWS.Tools.Installer",
+  "AWS.Tools.SSO",
+  "AWS.Tools.SSOOIDC"
 )
 
 Write-Host "`nImporting modules: $ImportModules"

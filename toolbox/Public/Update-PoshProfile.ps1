@@ -13,6 +13,7 @@ function Update-PoshProfile {
   else {
     & (Join-Path $repoPath "toolbox/Build.ps1")
     & (Join-Path $repoPath "Install-Profile.ps1")
+    Write-Host "Open a new terminal to load new toolbox" -ForegroundColor Yellow
   }
 }
 

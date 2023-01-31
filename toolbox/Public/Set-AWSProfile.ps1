@@ -31,9 +31,9 @@ function Set-AWSProfile {
     # If no profile param, list all profiles and offer selection
     if (Test-Path "~/.aws/config") {
       $awsconfig = Get-Content "~/.aws/config"
-      $profiles = @()
+      [array]$profiles = @()
       foreach ($line in $awsconfig) {
-        if ($line -match "\[.*\]") { $profiles += $line.replace("[profile ", "").replace("]", "") } # I am very lazy
+        if ($line -match "\[profile .*\]") { $profiles += $line.replace("[profile ", "").replace("]", "") } # I am very lazy
       }
       $profiles = $profiles | Sort-Object
 
