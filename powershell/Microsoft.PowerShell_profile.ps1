@@ -5,17 +5,18 @@ if ([string]::IsNullOrEmpty($repoLocation)) {
   exit 1
 }
 
-# Install posh if not found
-if (Get-Module -ListAvailable -Name oh-my-posh) {
-  Import-Module -Name oh-my-posh
+# Install oh-my-posh if not found
+Write-Host "Installing/Upgrading OhMyPosh:"
+if ((($(winget list JanDeDobbeleer.OhMyPosh) -join "") -match ".*No installed package.*") -eq $true) {
+  winget install JanDeDobbeleer.OhMyPosh -s winget
 }
 else {
-  Write-Host "Oh-My-Posh not found - installing!"
-  Install-Module oh-my-posh -Scope CurrentUser -Force
+  winget upgrade JanDeDobbeleer.OhMyPosh -s winget
 }
 
+
 # Set profile
-Set-PoshPrompt -Theme (Join-Path $repoLocation "posh\.mytheme.omp.json")
+oh-my-posh init pwsh --config (Join-Path $repoLocation "posh\.mytheme.omp.json") | Invoke-Expression
 
 # Import toolbox
 Import-Module (Join-Path $repoLocation "toolbox\output\Toolbox.psd1") -Force
@@ -68,7 +69,7 @@ if ($updateNeeded -eq $true) {
     "AWS.Tools.EC2",
     "AWS.Tools.S3",
     "AWS.Tools.RDS",
-    "AWS.Tools.SSO", 
+    "AWS.Tools.SSO",
     "AWS.Tools.SSOOIDC"
   )
 

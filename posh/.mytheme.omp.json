@@ -1,67 +1,63 @@
 {
   "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "version": 2,
+  "final_space": true,
   "blocks": [
     {
+      "type": "prompt",
       "alignment": "left",
       "segments": [
         {
-          "foreground": "#ffc107",
-          "properties": {
-            "template": " {{ .CurrentDate | date .Format }} ",
-            "time_format": "[15:04:05]"
-          },
+          "type": "time",
           "style": "plain",
-          "type": "time"
-        },
-        {
-          "background": "#18354c",
           "foreground": "#ffc107",
-          "leading_diamond": "\ue0b6",
-          "powerline_symbol": "\ue0b0",
+          "template": " {{ .CurrentDate | date .Format }} ",
           "properties": {
-            "style": "folder",
-            "template": " \ue5ff {{ .Path }} "
-          },
-          "style": "diamond",
-          "trailing_diamond": "\ue0b0",
-          "type": "path"
+            "time_format": "[15:04:05]"
+          }
         },
         {
-          "background": "#18354c",
-          "foreground": "#ffc107",
+          "type": "path",
+          "style": "diamond",
           "powerline_symbol": "\ue0b0",
+          "foreground": "#ffc107",
+          "background": "#18354c",
+          "leading_diamond": "\ue0b6",
+          "trailing_diamond": "\ue0b0",
+          "template": " \ue5ff {{ .Path }} ",
+          "properties": {
+            "style": "folder"
+          }
+        },
+        {
+          "type": "git",
+          "style": "powerline",
+          "powerline_symbol": "\ue0b0",
+          "foreground": "#ffc107",
+          "background": "#18354c",
+          "template": " {{ .HEAD }} {{ .BranchStatus }}{{ if .Working.Changed }} \uf044 {{ .Working.String }}{{ end }}{{ if and (.Staging.Changed) (.Working.Changed) }} |{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0}} \uf692 {{ .StashCount }}{{ end }}{{ if gt .WorktreeCount 0}} \uf1bb {{ .WorktreeCount }}{{ end }} ",
           "properties": {
             "fetch_stash_count": true,
-            "fetch_upstream_icon": true,
-            "template": " {{ .HEAD }} {{ .BranchStatus }}{{ if .Working.Changed }} \uf044 {{ .Working.String }}{{ end }}{{ if and (.Staging.Changed) (.Working.Changed) }} |{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0}} \uf692 {{ .StashCount }}{{ end }}{{ if gt .WorktreeCount 0}} \uf1bb {{ .WorktreeCount }}{{ end }} "
-          },
-          "style": "powerline",
-          "type": "git"
+            "fetch_upstream_icon": true
+          }
         },
         {
+          "type": "aws",
+          "style": "powerline",
+          "powerline_symbol": "\ue0b0",
+          "foreground": "#18354c",
           "background": "#ffc107",
-          "foreground": "#18354c",
-          "powerline_symbol": "\ue0b0",
-          "properties": {
-            "template": " \ue7ad {{.Profile}}{{if .Region}}@{{.Region}}{{end}} "
-          },
-          "style": "powerline",
-          "type": "aws"
+          "template": " \ue7ad {{.Profile}}{{if .Region}}@{{.Region}}{{end}} "
         },
         {
-          "background": "#ff0000",
-          "foreground": "#18354c",
-          "powerline_symbol": "\ue0b0",
-          "properties": {
-            "template": " \uf0e7 "
-          },
+          "type": "root",
           "style": "powerline",
-          "type": "root"
+          "powerline_symbol": "\ue0b0",
+          "foreground": "#18354c",
+          "background": "#ff0000",
+          "template": " \uf0e7 "
         }
-      ],
-      "type": "prompt"
+      ]
     }
-  ],
-  "final_space": true,
-  "version": 1
+  ]
 }
