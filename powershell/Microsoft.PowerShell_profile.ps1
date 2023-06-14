@@ -33,7 +33,7 @@ else {
   $oldDate = [datetime]::ParseExact((Get-Content $tempFilePath), "yyyy-MM-ddTHH:mm:ss", $null)
   $newDate = Get-Date
   $dateDiff = $newDate - $oldDate
-  if ($dateDiff.Days -ge 1) {
+  if ($dateDiff.Days -ge 7) {
     $updateNeeded = $true
   }
 }
