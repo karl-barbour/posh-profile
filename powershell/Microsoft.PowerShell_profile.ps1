@@ -51,9 +51,9 @@ if ($updateNeeded -eq $true) {
 
   # Update modules
   $ManagedModules = @(
-    "Az.Resources",
-    "AWS.Tools.Installer",
-    "Microsoft.Graph" #https://www.powershellgallery.com/packages/Microsoft.Graph/
+    "AWS.Tools.Installer"
+    # "Az.Resources",
+    # "Microsoft.Graph" #https://www.powershellgallery.com/packages/Microsoft.Graph/
   )
 
   $ManagedModulesForce = @(
