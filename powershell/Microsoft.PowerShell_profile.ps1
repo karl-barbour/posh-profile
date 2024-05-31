@@ -156,3 +156,5 @@ $ImportModules = @(
 Write-Host "`nImporting modules: $ImportModules"
 Import-Module -Name $ImportModules
 
+# History
+Set-PSReadLineOption -PredictionViewStyle ListView
